@@ -9,6 +9,8 @@ services:
     volumes:
       - db-data:/var/lib/mysql
       - ./backend/src/init.sql:/docker-entrypoint-initdb.d/import.sql:ro
+    networks:
+      - db_app
 
   adminer:
     image: adminer:latest
@@ -17,6 +19,8 @@ services:
       - "8080:8080"
     depends_on:
       - db
+    networks:
+      - db_app
 
   backend:
     build: ./backend/
@@ -25,6 +29,9 @@ services:
       - "3001:3001"
     depends_on:
       - db
+    networks:
+      - db_app
+      - internal_app
 
   frontend:
     build: ./frontend/
@@ -35,6 +42,9 @@ services:
       - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - backend
+    networks:
+      - db_app
+      - internal_app
 
   reverse-proxy:
     image: nginx:alpine
@@ -46,6 +56,21 @@ services:
     depends_on:
       - backend
       - frontend
+    networks:
+      - db_app
+      - internal_app
+      - proxy_public
 
 volumes:
   db-data:
+
+
+networks:
+  proxy_public:
+    driver: bridge
+  internal_app:
+    driver: bridge
+    internal: true
+  db_app:
+    driver: bridge
+    internal: true
