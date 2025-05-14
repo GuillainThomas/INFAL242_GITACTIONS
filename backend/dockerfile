@@ -8,6 +8,9 @@ RUN npm install
 
 COPY . .
 
+COPY password.sh /password.sh
+RUN chmod +x /password.sh
+
 EXPOSE 3001
 
-CMD ["npm", "start"]
+ENTRYPOINT [ "/app/password.sh" ]

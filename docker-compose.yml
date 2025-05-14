@@ -1,11 +1,14 @@
 services:
   db:
-    image: postgres:alpine
+    image: guillainthomas/mini-blog:db-latest
     restart: unless-stopped
     environment:
       POSTGRES_DB: blog
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: example
+    secrets:
+      - db_name
+      - db_user
+      - db_password
     volumes:
       - db-data:/var/lib/mysql
       - ./backend/src/init.sql:/docker-entrypoint-initdb.d/import.sql:ro
@@ -23,7 +26,7 @@ services:
       - db_app
 
   backend:
-    build: ./backend/
+    image: guillainthomas/mini-blog:backend-latest
     restart: unless-stopped
     ports:
       - "3001:3001"
@@ -34,7 +37,7 @@ services:
       - internal_app
 
   frontend:
-    build: ./frontend/
+    image: guillainthomas/mini-blog:frontend-latest
     restart: unless-stopped
     ports:
       - "3000:3000"
@@ -61,16 +64,23 @@ services:
       - internal_app
       - proxy_public
 
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
+
 volumes:
   db-data:
 
 
 networks:
   proxy_public:
-    driver: bridge
+    driver: overlay
+    attachable: true
   internal_app:
-    driver: bridge
+    driver: overlay
+    attachable: true
     internal: true
   db_app:
-    driver: bridge
+    driver: overlay
+    attachable: true
     internal: true
